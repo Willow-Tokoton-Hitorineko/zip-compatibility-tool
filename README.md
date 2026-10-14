@@ -55,3 +55,6 @@ A[输入 ZIP] --> B[路径/重名/限额检查]
 独立公开实现代码：MIT。合成样例随仓库发布，不向使用者授予任何第三方商业数据权利。没有捆绑原公司或团队源码。依赖与公开接口归因见 [NOTICE](NOTICE)。
 
 [作品集](https://github.com/Willow-Tokoton-Hitorineko/research-portfolio) · [个人主页](https://github.com/Willow-Tokoton-Hitorineko)
+
+
+文件名额外拒绝 `.`/空路径段、Windows 尾随点/空格、保留设备名、非法字符以及文件/目录前缀冲突，避免不同 ZIP 条目在提取时覆盖成一个文件。规则参考 [Microsoft 文件命名文档](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)。

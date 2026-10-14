@@ -19,8 +19,11 @@ def repaired_name(info):
         except (UnicodeEncodeError,UnicodeDecodeError):pass
     if '\\' in name or '\x00' in name or ':' in name:
         raise ValueError('Unsupported or unsafe archive name')
-    parts=PurePosixPath(name).parts
-    if name.startswith('/') or '..' in parts or not parts:
+    parts=name.removesuffix('/').split('/')
+    reserved={'CON','PRN','AUX','NUL','CONIN$','CONOUT$'} | {f'{p}{n}' for p in ('COM','LPT') for n in '123456789¹²³'}
+    if any(not p or p in ('.','..') or p.endswith(('.', ' '))
+           or any(ord(c)<32 or c in '<>:"\\|?*' for c in p)
+           or p.split('.')[0].upper() in reserved for p in parts):
         raise ValueError('Unsafe archive member path')
     return name
 
@@ -50,6 +53,11 @@ def repair(source:Path,output:Path|None=None):
                 if collision in seen:raise ValueError('Duplicate or case-colliding output names')
                 seen.add(collision)
                 entries.append((info,name))
+            files={name.rstrip('/').casefold() for info,name in entries if not name.endswith('/')}
+            for _,name in entries:
+                parts=name.rstrip('/').casefold().split('/')
+                if any('/'.join(parts[:i]) in files for i in range(1,len(parts))):
+                    raise ValueError('File/directory prefix collision')
             handle=tempfile.NamedTemporaryFile(prefix='.zip-repair-',suffix='.tmp',dir=output.parent,delete=False)
             tmp=Path(handle.name);handle.close()
             with zipfile.ZipFile(tmp,'w',compression=zipfile.ZIP_DEFLATED) as zout:

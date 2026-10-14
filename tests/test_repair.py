@@ -27,6 +27,20 @@ class ZipTests(unittest.TestCase):
             struct.pack_into('<H',raw,pos+offset,flags&~0x800)
         self.src.write_bytes(raw);r=repair(self.src)
         with zipfile.ZipFile(r['output']) as z:self.assertEqual(z.namelist(),['中文.txt'])
+    def test_windows_unsafe_names_rejected(self):
+        for name in ('./a.txt','a//b.txt','report.txt.','report.txt ','NUL.txt','COM¹.txt','a<b.txt','/absolute'):
+            with self.subTest(name=name):
+                self.write([(name,b'x')])
+                with self.assertRaises(ValueError):repair(self.src)
+                self.assertFalse(self.src.with_name('input_Windows_UTF8.zip').exists())
+    def test_file_directory_prefix_conflicts(self):
+        for names in (('a','a/b.txt'),('a/b.txt','A')):
+            self.write([(n,b'x') for n in names])
+            with self.assertRaises(ValueError):repair(self.src)
+    def test_explicit_directory_is_allowed(self):
+        self.write([('a/',b''),('a/b.txt',b'x')])
+        result=repair(self.src)
+        with zipfile.ZipFile(result['output']) as z:self.assertEqual(z.read('a/b.txt'),b'x')
     def test_no_overwrite(self):
         self.write([('a.txt',b'a')]);output=self.root/'out.zip';output.write_bytes(b'original')
         with self.assertRaises(FileExistsError):repair(self.src,output)
