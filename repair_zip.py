@@ -78,6 +78,6 @@ def repair(source:Path,output:Path|None=None):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('input',type=Path);p.add_argument('--output',type=Path)
-    args=p.parse_args();print(json.dumps(repair(args.input,args.output),ensure_ascii=False,indent=2))
+    args=p.parse_args();print(json.dumps(repair(args.input,args.output),ensure_ascii=True,indent=2))
 
 if __name__=='__main__':main()

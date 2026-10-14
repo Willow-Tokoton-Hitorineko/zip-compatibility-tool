@@ -12,4 +12,5 @@ with tempfile.TemporaryDirectory() as directory:
         archive.writestr('__MACOSX/._example.txt',b'metadata')
     result=repair(source)
     result['output']=Path(result['output']).name
-    print(json.dumps(result,ensure_ascii=False,indent=2))
+    # Escaped JSON is lossless and works even on legacy Windows console encodings.
+    print(json.dumps(result,ensure_ascii=True,indent=2))
